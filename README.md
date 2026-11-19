@@ -12,9 +12,55 @@ If you opt in, your anonymous training feedback helps train the next version of 
 
 ## Install
 
-1. Install [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api) for Minecraft 26.3.
-2. Download `le-dog-<version>.jar` from the [latest release](https://github.com/AcastaPaloma/le-dog/releases/latest) into your `mods` folder.
-3. In a world, run `/ledog update` once to download the dog brains (a few MB, checksum-verified) into `~/.ledog`.
+**You need:** Minecraft Java Edition **26.3**, [Fabric Loader](https://fabricmc.net/use/) 0.20.1 or newer,
+[Fabric API](https://modrinth.com/mod/fabric-api) for 26.3, and Java 25 (the official launcher and the Modrinth App
+bring their own Java, so usually nothing to do).
+
+**Where to get Le Dog:** the [latest GitHub release](https://github.com/AcastaPaloma/le-dog/releases/latest)
+(`le-dog-1.0.0.jar`). A Modrinth page is coming; once it is up, launchers can install and update it in one click.
+
+### Option A: Modrinth App (easiest)
+1. Install the [Modrinth App](https://modrinth.com/app) and create a new instance: **Fabric**, game version **26.3**.
+2. In the instance, search **Fabric API** and install it.
+3. Open the instance folder (Instance -> ... -> Open folder), go into `mods`, and drop `le-dog-1.0.0.jar` there.
+4. Play.
+
+### Option B: official Minecraft launcher
+1. Run the [Fabric installer](https://fabricmc.net/use/installer/), choose **Client**, Minecraft **26.3**, and install.
+   A "fabric-loader-26.3" profile appears in the launcher.
+2. Download [Fabric API for 26.3](https://modrinth.com/mod/fabric-api/versions?g=26.3) and `le-dog-1.0.0.jar`.
+3. Put both jars in your `mods` folder (create it if missing):
+   - Windows: `%APPDATA%\.minecraft\mods`
+   - macOS: `~/Library/Application Support/minecraft/mods`
+   - Linux: `~/.minecraft/mods`
+4. Start the launcher with the **fabric-loader-26.3** profile.
+
+### Option C: Prism Launcher / MultiMC
+Create an instance for 26.3, *Edit -> Version -> Install Fabric*, then *Mods -> Add file* for Fabric API and Le Dog.
+
+### First run (everyone)
+1. Open any world (singleplayer works; cheats are not needed).
+2. Run **`/ledog update`**. It downloads the dog brains (about 5 MB, SHA-256 checked) from this repository's releases
+   into a `.ledog` folder in your home directory (`C:\Users\<you>\.ledog` on Windows, `~/.ledog` on macOS/Linux).
+3. Run `/ledog student playful` and meet your dog. `/ledog debug` shows what it is thinking.
+
+### Servers
+Install Fabric Loader + Fabric API + Le Dog on the server and run `/ledog update` once from the server console or as
+an operator. The dogs' logic runs on the server. We have only tested with the mod installed on both the server and
+the players' clients; players without the mod may work but are untested.
+
+### Troubleshooting
+- **"no dog brain yet: run /ledog update"**: run `/ledog update` (needs internet once). If GitHub is blocked, download
+  `student.onnx` and `rl_tricks.onnx` from the [release page](https://github.com/AcastaPaloma/le-dog/releases/latest)
+  and put them in the `.ledog` folder yourself.
+- **The game does not start / Le Dog missing from the mod list**: check that Fabric API for 26.3 is installed and that
+  you launched the Fabric profile.
+- **Crash mentioning Java version**: Le Dog needs Java 25+; use the launcher's bundled Java.
+- Anything else: [open an issue](https://github.com/AcastaPaloma/le-dog/issues) with your `logs/latest.log`.
+
+### Uninstall
+Delete `le-dog-1.0.0.jar` from `mods`, and the `.ledog` folder from your home directory if you also want to remove the
+dog brains and your dogs' training.
 
 ## Commands
 
