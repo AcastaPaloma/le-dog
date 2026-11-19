@@ -17,18 +17,18 @@ If you opt in, your anonymous training feedback helps train the next version of 
 bring their own Java, so usually nothing to do).
 
 **Where to get Le Dog:** the [latest GitHub release](https://github.com/AcastaPaloma/le-dog/releases/latest)
-(`le-dog-1.0.0.jar`). A Modrinth page is coming; once it is up, launchers can install and update it in one click.
+(`le-dog-1.0.1.jar`). A Modrinth page is coming; once it is up, launchers can install and update it in one click.
 
 ### Option A: Modrinth App (easiest)
 1. Install the [Modrinth App](https://modrinth.com/app) and create a new instance: **Fabric**, game version **26.3**.
 2. In the instance, search **Fabric API** and install it.
-3. Open the instance folder (Instance -> ... -> Open folder), go into `mods`, and drop `le-dog-1.0.0.jar` there.
+3. Open the instance folder (Instance -> ... -> Open folder), go into `mods`, and drop `le-dog-1.0.1.jar` there.
 4. Play.
 
 ### Option B: official Minecraft launcher
 1. Run the [Fabric installer](https://fabricmc.net/use/installer/), choose **Client**, Minecraft **26.3**, and install.
    A "fabric-loader-26.3" profile appears in the launcher.
-2. Download [Fabric API for 26.3](https://modrinth.com/mod/fabric-api/versions?g=26.3) and `le-dog-1.0.0.jar`.
+2. Download [Fabric API for 26.3](https://modrinth.com/mod/fabric-api/versions?g=26.3) and `le-dog-1.0.1.jar`.
 3. Put both jars in your `mods` folder (create it if missing):
    - Windows: `%APPDATA%\.minecraft\mods`
    - macOS: `~/Library/Application Support/minecraft/mods`
@@ -59,7 +59,7 @@ the players' clients; players without the mod may work but are untested.
 - Anything else: [open an issue](https://github.com/AcastaPaloma/le-dog/issues) with your `logs/latest.log`.
 
 ### Uninstall
-Delete `le-dog-1.0.0.jar` from `mods`, and the `.ledog` folder from your home directory if you also want to remove the
+Delete `le-dog-1.0.1.jar` from `mods`, and the `.ledog` folder from your home directory if you also want to remove the
 dog brains and your dogs' training.
 
 ## Commands
@@ -96,6 +96,14 @@ With `/ledog share on`, your feedback events are uploaded anonymously to the Le 
 [PRIVACY.md](PRIVACY.md) for exactly what is sent). Pooled feedback from many players trains a model of what players
 reward, which is used to train better dog brains at scale; new versions are published here as releases and installed
 with `/ledog update`. Every release must still pass the realism and safety checks the dogs were built with.
+
+## Security
+
+- `/ledog update` only installs dog brains listed in a release manifest **signed** with the Le Dog release key
+  (Ed25519; the public key is built into the mod, the private key never leaves the maintainer's machine), and every
+  file is checked against its SHA-256 before it is used. Tampered or unsigned manifests are refused.
+- The mod opens no network ports. It talks to GitHub (updates) and, only if you run `/ledog share on`, the collector.
+- Found a problem? Please open an issue.
 
 ## Repository
 
