@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "ledog",
+  "version": "${version}",
+  "name": "Le Dog",
+  "description": "Minecraft wolves that act like real dogs (a small neural policy distilled from an LLM and tuned to real-dog motion), with temperaments, and trick dogs you train with treats. Optional anonymous community training.",
+  "authors": [
+    "Kuan Yi Wang"
+  ],
+  "contact": {
+    "homepage": "https://github.com/AcastaPaloma/le-dog",
+    "sources": "https://github.com/AcastaPaloma/le-dog",
+    "issues": "https://github.com/AcastaPaloma/le-dog/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/ledog/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ai.ledog.LedogMod"
+    ],
+    "client": [
+      "ai.ledog.client.LedogClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
