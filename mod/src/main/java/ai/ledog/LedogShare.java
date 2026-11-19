@@ -156,6 +156,16 @@ public final class LedogShare {
         HttpResponse<String> r = HTTP.send(rq, HttpResponse.BodyHandlers.ofString());
         if (r.statusCode() != 200) throw new IllegalStateException("release manifest " + r.statusCode());
         JsonObject m = LedogMod.GSON.fromJson(r.body(), JsonObject.class);
+        if (m.has("collector")) {  // the collector address is published with each release (no jar rebuild needed)
+            JsonObject c = cfg();
+            boolean auto = !c.has("endpoint") || c.get("endpoint").getAsString().isEmpty()
+                    || (c.has("endpoint_auto") && c.get("endpoint_auto").getAsBoolean());
+            if (auto) {
+                c.addProperty("endpoint", m.get("collector").getAsString());
+                c.addProperty("endpoint_auto", true);
+                save(c);
+            }
+        }
         JsonObject have = cfg().getAsJsonObject("models");
         boolean newer = false;
         for (JsonElement e : m.getAsJsonArray("models")) {

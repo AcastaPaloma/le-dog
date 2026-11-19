@@ -5,4 +5,4 @@ compatibility_date = "2024-11-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ledog"
-database_id = "REPLACE_AFTER_d1_create"
+database_id = "b35fbdd9-4601-4eeb-9e8c-4b41797d5c94"
