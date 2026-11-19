@@ -26,6 +26,9 @@ public class LedogClient implements ClientModInitializer {
     private final LedogVision vision = new LedogVision();
     private final CineCam cine = new CineCam();  // filming camera (media/film.py), off unless a shot file is present
     private final boolean researchVision = "1".equals(System.getenv("LEDOG_VISION"));
+    // research frame capture (Gate D / vision pipeline) only where the research stack created the frames folder
+    // (scripts/wolfmod_up.sh); public players never get their camera taken over or frames written
+    private final boolean researchCapture = java.nio.file.Files.isDirectory(OUT);
     private Wolf camWolf;          // /ledogcam (normal play): ride along in a Le Dog wolf's eyes
     private boolean camVision, hudWasHidden;
 
@@ -87,6 +90,7 @@ public class LedogClient implements ClientModInitializer {
             }
             return;
         }
+        if (!researchCapture) return;
         Wolf wolf = null;
         for (Entity e : mc.level.entitiesForRendering()) {
             if (e instanceof Wolf w && w.getCustomName() != null && "ledog".equals(w.getCustomName().getString())) {

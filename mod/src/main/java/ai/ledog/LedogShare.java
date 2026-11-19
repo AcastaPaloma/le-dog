@@ -26,7 +26,7 @@ import java.util.UUID;
  * hunger, the trick word, and the 28 observation numbers + action of the credited decisions. Never player names or chat.
  */
 public final class LedogShare {
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.0.2";
     /** Ed25519 public key (DER, base64) of the Le Dog release signer. Release manifests must carry a valid
      *  manifest.json.sig made with the matching private key (kept offline by the maintainer), or updates are refused. */
     static final String RELEASE_PUBKEY = "MCowBQYDK2VwAyEAD7EgWwVhHouNglkRDqMUKzLtkKa/LPFPG6fk0pYmhto=";

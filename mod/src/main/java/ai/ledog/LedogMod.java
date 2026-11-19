@@ -132,7 +132,12 @@ public class LedogMod implements ModInitializer {
             if (entity instanceof Wolf w) reattach(w);
         });
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((d, ctx, env) -> {
-            var root = net.minecraft.commands.Commands.literal("ledog").executes(c -> playCommand(c.getSource(), "bm"));
+            var root = net.minecraft.commands.Commands.literal("ledog").executes(c -> {
+                c.getSource().sendSuccess(() -> Component.literal(
+                        "Le Dog: /ledog update (download dog brains), /ledog student [bold|shy|lazy|playful|curious|social],"
+                        + " /ledog trick [preset] (then say sit / come / jump / stay), /ledog debug, /ledog share on|off"), false);
+                return 1;
+            });
             for (String kind : new String[]{"bm", "shape", "follow", "vision"})
                 root = root.then(net.minecraft.commands.Commands.literal(kind).executes(c -> playCommand(c.getSource(), kind)));
             var stu = net.minecraft.commands.Commands.literal("student").executes(c -> playCommand(c.getSource(), "student"));
