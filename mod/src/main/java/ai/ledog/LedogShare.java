@@ -26,7 +26,10 @@ import java.util.UUID;
  * hunger, the trick word, and the 28 observation numbers + action of the credited decisions. Never player names or chat.
  */
 public final class LedogShare {
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
+    /** Ed25519 public key (DER, base64) of the Le Dog release signer. Release manifests must carry a valid
+     *  manifest.json.sig made with the matching private key (kept offline by the maintainer), or updates are refused. */
+    static final String RELEASE_PUBKEY = "MCowBQYDK2VwAyEAD7EgWwVhHouNglkRDqMUKzLtkKa/LPFPG6fk0pYmhto=";
     public static final String RELEASES = "https://github.com/AcastaPaloma/le-dog/releases/latest/download/manifest.json";
     public static final String DEFAULT_ENDPOINT = "";  // set once the collector is deployed
     static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10))
@@ -153,9 +156,13 @@ public final class LedogShare {
     /** Fetch the newest release manifest; remembers it when it is newer than the installed models. */
     public static JsonObject checkForUpdate() throws Exception {
         HttpRequest rq = HttpRequest.newBuilder(URI.create(RELEASES)).timeout(Duration.ofSeconds(20)).GET().build();
-        HttpResponse<String> r = HTTP.send(rq, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<byte[]> r = HTTP.send(rq, HttpResponse.BodyHandlers.ofByteArray());
         if (r.statusCode() != 200) throw new IllegalStateException("release manifest " + r.statusCode());
-        JsonObject m = LedogMod.GSON.fromJson(r.body(), JsonObject.class);
+        HttpRequest rs = HttpRequest.newBuilder(URI.create(RELEASES + ".sig")).timeout(Duration.ofSeconds(20)).GET().build();
+        HttpResponse<byte[]> sg = HTTP.send(rs, HttpResponse.BodyHandlers.ofByteArray());
+        if (sg.statusCode() != 200 || !verify(r.body(), sg.body()))
+            throw new IllegalStateException("release manifest signature missing or invalid; update refused");
+        JsonObject m = LedogMod.GSON.fromJson(new String(r.body(), StandardCharsets.UTF_8), JsonObject.class);
         if (m.has("collector")) {  // the collector address is published with each release (no jar rebuild needed)
             JsonObject c = cfg();
             boolean auto = !c.has("endpoint") || c.get("endpoint").getAsString().isEmpty()
@@ -176,6 +183,21 @@ public final class LedogShare {
         }
         latest = newer ? m : null;
         return m;
+    }
+
+    /** Ed25519 signature check of the release manifest against RELEASE_PUBKEY. */
+    static boolean verify(byte[] data, byte[] sig) {
+        try {
+            var kf = java.security.KeyFactory.getInstance("Ed25519");
+            var pk = kf.generatePublic(new java.security.spec.X509EncodedKeySpec(java.util.Base64.getDecoder().decode(RELEASE_PUBKEY)));
+            var v = java.security.Signature.getInstance("Ed25519");
+            v.initVerify(pk);
+            v.update(data);
+            return v.verify(sig);
+        } catch (Exception e) {
+            LedogMod.LOG.warn("manifest signature check failed", e);
+            return false;
+        }
     }
 
     /** Download every model of the newest release whose version differs; sha256-verified, atomic replace. */

@@ -319,6 +319,7 @@ public class LedogMod implements ModInitializer {
             LedogTelemetry.tick(((ServerLevel) e.getKey().level()).getGameTime(), e.getKey(), e.getValue());
         arenas.tick(server, tick);
         bench.tick(server, tick);  // multi-wolf arenas (contract v1 executor)
+        film.tick(server, tick);   // scripted film props
         if (wolf == null || !wolf.isAlive()) return;
         if (brain != null && tick % 2 == 0) brain.step(server.overworld(), wolf);
         if (brain != null) LedogTelemetry.tick(server.overworld().getGameTime(), wolf, brain);
@@ -346,6 +347,7 @@ public class LedogMod implements ModInitializer {
         String op = m.get("op").getAsString();
         if (op.startsWith("arena_")) return arenas.handle(server, op, m, tick);
         if (op.startsWith("bench_")) return bench.handle(server, op, m, tick);
+        if (op.startsWith("film_")) return film.handle(server, op, m);
         JsonObject r = new JsonObject();
         switch (op) {
             case "server_cmd" -> {  // run a command as the server console (permission 4): camera tp, gamemode, time
@@ -656,7 +658,8 @@ public class LedogMod implements ModInitializer {
     private WolfBrain brain;    // the research wolf's brain (spawn op with "brain": bm|shape|follow|vision)
     private boolean debugLabels = false;
     final Bench bench = new Bench(this);
-    private final java.util.Map<Wolf, WolfBrain> playBrains = new java.util.HashMap<>();  // /ledog wolves (normal play)
+    final Film film = new Film(this);  // filming ops (media/film.py)
+    final java.util.Map<Wolf, WolfBrain> playBrains = new java.util.HashMap<>();  // /ledog wolves (normal play)
     private boolean research;   // true once the control port spawned a wolf: the player-follow teleport applies
 
     private BmBrain weights() throws java.io.IOException {

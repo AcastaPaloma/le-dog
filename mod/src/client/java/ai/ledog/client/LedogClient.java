@@ -24,6 +24,7 @@ public class LedogClient implements ClientModInitializer {
             System.getProperty("user.home") + "/wolfmod/frames"));
     private long ticks, seq;
     private final LedogVision vision = new LedogVision();
+    private final CineCam cine = new CineCam();  // filming camera (media/film.py), off unless a shot file is present
     private final boolean researchVision = "1".equals(System.getenv("LEDOG_VISION"));
     private Wolf camWolf;          // /ledogcam (normal play): ride along in a Le Dog wolf's eyes
     private boolean camVision, hudWasHidden;
@@ -70,6 +71,7 @@ public class LedogClient implements ClientModInitializer {
 
     private void onTick(Minecraft mc) {
         ticks++;
+        if (cine.tick(mc)) return;  // a film shot owns the camera
         if (mc.level == null) return;
         if (camWolf != null) {  // normal play ride-along
             if (!camWolf.isAlive()) { toggleCam(mc); return; }

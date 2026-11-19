@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS events (
   credited  TEXT                   -- JSON: [{a, word, w, obs[28]}]
 );
 CREATE INDEX IF NOT EXISTS events_install_received ON events (install, received);
+
+-- per-IP rate limit buckets (salted hash of the IP, hourly; rows older than a day are deleted)
+CREATE TABLE IF NOT EXISTS ratelimit (k TEXT NOT NULL, hour INTEGER NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (k, hour));

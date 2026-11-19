@@ -4,7 +4,14 @@
 //   GET  /v1/export?after=<id>&limit=<n>   Authorization: Bearer <EXPORT_TOKEN>   (training pipeline)
 const SIGNALS = new Set(["steak", "bone", "golden carrot", "pet", "good", "gooddog", "goodboy", "goodgirl", "yes", "yay",
   "nice", "goodjob", "no", "bad", "nope", "baddog", "badboy", "badgirl"]);
-const MAX_EVENTS = 200, MAX_BYTES = 512 * 1024, PER_HOUR = 3000;
+const MAX_EVENTS = 200, MAX_BYTES = 512 * 1024, PER_HOUR = 3000, PER_IP_HOUR = 6000, PER_DAY = 90000;
+// PER_DAY stays under D1's free 100k row writes/day; PER_IP_HOUR stops one machine faking many install ids.
+// IPs are never stored: only a salted SHA-256 (secret IP_SALT) per hour bucket, deleted after a day.
+async function ipKey(req, env) {
+  const ip = req.headers.get("cf-connecting-ip") || "unknown";
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode((env.IP_SALT || "") + ip));
+  return [...new Uint8Array(d)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
@@ -31,14 +38,25 @@ export default {
     if (req.method === "POST" && url.pathname === "/v1/events") {
       const len = Number(req.headers.get("content-length") || 0);
       if (len > MAX_BYTES) return json({ error: "too large" }, 413);
+      const text = await req.text();
+      if (text.length > MAX_BYTES) return json({ error: "too large" }, 413);
       let body;
-      try { body = JSON.parse(await req.text()); } catch { return json({ error: "bad json" }, 400); }
+      try { body = JSON.parse(text); } catch { return json({ error: "bad json" }, 400); }
       if (!body || !UUID.test(body.install || "") || !Array.isArray(body.events)) return json({ error: "bad request" }, 400);
       const evs = body.events.slice(0, MAX_EVENTS).map(clean).filter(Boolean);
-      const now = Date.now();
+      const now = Date.now(), hour = Math.floor(now / 3600_000);
       const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM events WHERE install = ? AND received > ?")
         .bind(body.install, now - 3600_000).first();
       if (n + evs.length > PER_HOUR) return json({ error: "rate limited" }, 429);
+      const day = await env.DB.prepare("SELECT COUNT(*) AS n FROM events WHERE received > ?").bind(now - 86400_000).first();
+      if (day.n + evs.length > PER_DAY) return json({ error: "collector full for today" }, 503);
+      const k = await ipKey(req, env);
+      const ipn = await env.DB.prepare("SELECT n FROM ratelimit WHERE k = ? AND hour = ?").bind(k, hour).first();
+      if ((ipn ? ipn.n : 0) + evs.length > PER_IP_HOUR) return json({ error: "rate limited" }, 429);
+      await env.DB.batch([
+        env.DB.prepare("INSERT INTO ratelimit (k, hour, n) VALUES (?, ?, ?) ON CONFLICT(k, hour) DO UPDATE SET n = n + excluded.n").bind(k, hour, evs.length),
+        env.DB.prepare("DELETE FROM ratelimit WHERE hour < ?").bind(hour - 24),
+      ]);
       const mod = String(body.mod || "").slice(0, 16), policy = String(body.policy || "").slice(0, 16);
       const st = env.DB.prepare("INSERT INTO events (received, install, mod, policy, t, dog, signal, r, hunger, credited) VALUES (?,?,?,?,?,?,?,?,?,?)");
       if (evs.length) await env.DB.batch(evs.map((e) => st.bind(now, body.install, mod, policy, e.t, e.dog, e.signal, e.r, e.hunger, e.credited)));
